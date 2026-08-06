@@ -41,11 +41,10 @@
     .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #334155; border-radius: 10px; }
     .leader-item.player { border: 2px solid var(--accent); background: #475569; }
     
-    /* Кнопка подарка на миллион монет */
+    /* Красивая кнопка-подарок */
     .gift-btn { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: white; border: 2px solid #fee2e2; padding: 12px 20px; font-size: 14px; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px auto 0 auto; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); animation: pulse 1.5s infinite; }
     @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
     
-    /* Текст почты сбоку */
     .support-text { position: absolute; right: -250px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; width: 230px; text-align: left; }
     @media (max-width: 900px) { .support-text { position: static; transform: none; margin-top: 20px; width: 100%; text-align: center; } }
   </style>
@@ -81,14 +80,14 @@
           <div class="upgrade-cost"><span id="passiveCost">25</span> 🪙</div>
         </button>
       </div>
-      <!-- Кнопка-подарок для миллионов -->
+      
+      <!-- Исправленная кнопка -->
       <button class="gift-btn" onclick="addMillion()">🎁 ЗАБРАТЬ 1,000,000 🪙</button>
     </div>
     <div id="leaderboardPage" class="page">
       <h1>🏆 Таблица Лидеров</h1>
       <div class="leaderboard-list" id="leaderboardList"></div>
     </div>
-    <!-- Твоя почта поддержки -->
     <div class="support-text">Поддержка: farizod.games@gmail.com</div>
   </div>
   <script>
@@ -103,6 +102,8 @@
     var savedState = localStorage.getItem('clicker_save_clean');
     if (savedState) { try { state = JSON.parse(savedState); } catch(e) {} }
     function saveGame() { localStorage.setItem('clicker_save_clean', JSON.stringify(state)); }
+    
+    /* ТУТ БЫЛА ОШИБКА, ТЕПЕРЬ ВСЁ ИСПРАВЛЕНО */
     function switchPage(pageId) {
       document.getElementById('clickerPage').classList.remove('active');
       document.getElementById('leaderboardPage').classList.remove('active');
@@ -110,12 +111,13 @@
       document.getElementById('btnLeaderboard').classList.remove('active');
       document.getElementById(pageId).classList.add('active');
       if (pageId === 'clickerPage') {
-        document.getElementById('btnClicker').add('active');
+        document.getElementById('btnClicker').classList.add('active');
       } else {
         document.getElementById('btnLeaderboard').classList.add('active');
         renderLeaderboard();
       }
     }
+    
     function updateUI() {
       document.getElementById('coins').innerText = Math.floor(state.coins);
       document.getElementById('cps').innerText = state.cps;
@@ -169,6 +171,5 @@
       updateUI();
       saveGame();
     }
-
     setInterval(function() {
       if (state.cps > 0) { state.coins += state.cps / 10; updateUI(); }
