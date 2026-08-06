@@ -41,9 +41,13 @@
     .leader-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #334155; border-radius: 10px; }
     .leader-item.player { border: 2px solid var(--accent); background: #475569; }
     
-    /* Красивая кнопка-подарок */
-    .gift-btn { background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%); color: white; border: 2px solid #fee2e2; padding: 12px 20px; font-size: 14px; border-radius: 50px; font-weight: bold; cursor: pointer; margin: 15px auto 0 auto; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4); animation: pulse 1.5s infinite; }
-    @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
+    /* Стили Секретной Админки */
+    .admin-box { margin-top: 20px; background: #1e293b; border: 2px dashed #ef4444; padding: 15px; border-radius: 12px; text-align: center; }
+    .admin-input { width: 100%; padding: 10px; margin: 8px 0; background: #334155; border: 1px solid #475569; color: white; border-radius: 6px; text-align: center; }
+    .admin-btn { width: 100%; padding: 10px; background: #10b981; border: none; color: white; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 5px; }
+    .admin-panel { display: none; background: linear-gradient(135deg, #1e1b4b 0%, #311042 100%); border: 2px solid #a855f7; padding: 15px; border-radius: 12px; margin-top: 15px; }
+    .panel-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px; }
+    .panel-btn { padding: 10px; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; color: white; }
     
     .support-text { position: absolute; right: -250px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 14px; width: 230px; text-align: left; }
     @media (max-width: 900px) { .support-text { position: static; transform: none; margin-top: 20px; width: 100%; text-align: center; } }
@@ -55,6 +59,8 @@
       <button class="tab-btn active" id="btnClicker" onclick="switchPage('clickerPage')">Кликер</button>
       <button class="tab-btn" id="btnLeaderboard" onclick="switchPage('leaderboardPage')">🏆 Топ игроков</button>
     </div>
+
+    <!-- СТРАНИЦА КЛИКЕРА -->
     <div id="clickerPage" class="page active">
       <h1>🪙 Монетный Кликер</h1>
       <div class="score-container">
@@ -67,7 +73,7 @@
       <div class="upgrades">
         <button class="upgrade-btn" id="clickUpgrade" onclick="buyClickUpgrade()">
           <div class="upgrade-info">
-            <div>Усиленный клик</div>
+            <div>Усиленный клык</div>
             <div>+1 за клик (Ур. <span id="clickLvl">1</span>)</div>
           </div>
           <div class="upgrade-cost"><span id="clickCost">10</span> 🪙</div>
@@ -80,18 +86,36 @@
           <div class="upgrade-cost"><span id="passiveCost">25</span> 🪙</div>
         </button>
       </div>
-      
-      <!-- Исправленная кнопка -->
-      <button class="gift-btn" onclick="addMillion()">🎁 ЗАБРАТЬ 1,000,000 🪙</button>
     </div>
+
+    <!-- СТРАНИЦА ТОПА + СЕКРЕТНЫЙ ВХОД -->
     <div id="leaderboardPage" class="page">
       <h1>🏆 Таблица Лидеров</h1>
       <div class="leaderboard-list" id="leaderboardList"></div>
+      
+      <!-- Форма ввода секретного кода -->
+      <div class="admin-box" id="loginBox">
+        <h4 style="color:#ef4444;">🔐 Доступ разработчика</h4>
+        <input type="password" id="adminCodeInput" class="admin-input" placeholder="Введите секретный код">
+        <button class="admin-btn" onclick="tryLogin()">Войти в панель</button>
+      </div>
+
+      <!-- Скрытая Админ-Панель -->
+      <div class="admin-panel" id="adminPanel">
+        <h3 style="color:#a855f7;">⚡ ПАНЕЛЬ ФАРИЗОДА</h3>
+        <div class="panel-grid">
+          <button class="panel-btn" style="background:#b91c1c;" onclick="adminAddMoney(1000000)">+1,000,000 🪙</button>
+          <button class="panel-btn" style="background:#047857;" onclick="adminAddCps(500)">+500/сек ⚡</button>
+          <button class="panel-btn" style="background:#1d4ed8;" onclick="adminResetScore()">Сбросить всё 🔄</button>
+          <button class="panel-btn" style="background:#4b5563;" onclick="tryLogout()">Выйти 🚪</button>
+        </div>
+      </div>
     </div>
     <div class="support-text">Поддержка: farizod.games@gmail.com</div>
   </div>
+
   <script>
-    var state = { coins: 0, clickPower: 1, clickLvl: 1, clickCost: 10, cps: 0, passiveLvl: 0, passiveCost: 25 };
+    var state = { coins: 0, clickPower: 1, clickLvl: 1, clickCost: 10, cps: 0, passiveLvl: 0, passiveCost: 25, isAdmin: false };
     var leaders = [
       { name: "👑 Султан Клик", coins: 54600, cps: 25 },
       { name: "🚀 Илон Маск", coins: 17207, cps: 12 },
@@ -103,7 +127,6 @@
     if (savedState) { try { state = JSON.parse(savedState); } catch(e) {} }
     function saveGame() { localStorage.setItem('clicker_save_clean', JSON.stringify(state)); }
     
-    /* ТУТ БЫЛА ОШИБКА, ТЕПЕРЬ ВСЁ ИСПРАВЛЕНО */
     function switchPage(pageId) {
       document.getElementById('clickerPage').classList.remove('active');
       document.getElementById('leaderboardPage').classList.remove('active');
@@ -114,6 +137,7 @@
         document.getElementById('btnClicker').classList.add('active');
       } else {
         document.getElementById('btnLeaderboard').classList.add('active');
+        checkAdminStatus();
         renderLeaderboard();
       }
     }
@@ -128,12 +152,15 @@
       document.getElementById('passiveCost').innerText = state.passiveCost;
       document.getElementById('passiveUpgrade').disabled = state.coins < state.passiveCost;
     }
+
     function renderLeaderboard() {
       var listEl = document.getElementById('leaderboardList');
       listEl.innerHTML = '';
       var allPlayers = [];
       for (var i = 0; i < leaders.length; i++) { allPlayers.push(leaders[i]); }
-      allPlayers.push({ name: "Ты (Игрок)", coins: state.coins, isPlayer: true });
+      
+      var myName = state.isAdmin ? "Ты (Разработчик Фаризод)" : "Ты (Игрок)";
+      allPlayers.push({ name: myName, coins: state.coins, isPlayer: true });
       allPlayers.sort(function(a, b) { return b.coins - a.coins; });
       for (var j = 0; j < allPlayers.length; j++) {
         var p = allPlayers[j];
@@ -143,33 +170,3 @@
         if (j === 0) rank = "🥇";
         if (j === 1) rank = "🥈";
         if (j === 2) rank = "🥉";
-        item.innerHTML = '<div>' + rank + ' ' + p.name + '</div><div style="font-weight:bold;color:#f59e0b;">' + Math.floor(p.coins) + ' 🪙</div>';
-        listEl.appendChild(item);
-      }
-    }
-    document.getElementById('coinBtn').addEventListener('click', function(e) {
-      state.coins += state.clickPower;
-      createFloatingText(e.clientX, e.clientY, '+' + state.clickPower);
-      updateUI();
-      saveGame();
-    });
-    function createFloatingText(x, y, text) {
-      var floatEl = document.createElement('div');
-      floatEl.className = 'floating-text';
-      floatEl.innerText = text;
-      floatEl.style.left = (x - 15) + 'px';
-      floatEl.style.top = (y - 20) + 'px';
-      document.body.appendChild(floatEl);
-      setTimeout(function() { floatEl.remove(); }, 800);
-    }
-    function buyClickUpgrade() { if (state.coins >= state.clickCost) { state.coins -= state.clickCost; state.clickPower += 1; state.clickLvl += 1; state.clickCost = Math.floor(state.clickCost * 1.5); updateUI(); saveGame(); } }
-    function buyPassiveUpgrade() { if (state.coins >= state.passiveCost) { state.coins -= state.passiveCost; state.cps += 1; state.passiveLvl += 1; state.passiveCost = Math.floor(state.passiveCost * 1.6); updateUI(); saveGame(); } }
-    
-    function addMillion() {
-      state.coins += 1000000;
-      alert("🎉 УРА! Твой баланс пополнен на 1,000,000 монет! Игроки ликуют!");
-      updateUI();
-      saveGame();
-    }
-    setInterval(function() {
-      if (state.cps > 0) { state.coins += state.cps / 10; updateUI(); }
